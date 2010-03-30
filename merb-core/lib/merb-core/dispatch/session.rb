@@ -118,12 +118,15 @@ module Merb
         # Keep track of all known session store types.
         base.cattr_accessor :registered_session_types
         base.registered_session_types = Dictionary.new
-        base.class_inheritable_accessor :_session_id_key, :_session_secret_key,
-                                        :_session_expiry
-        
+        base.class_inheritable_accessor :_session_id_key,
+                                        :_session_secret_key,
+                                        :_session_expiry,
+                                        :_default_cookie_domain
+
         base._session_id_key        = Merb::Config[:session_id_key] || '_session_id'
         base._session_expiry        = Merb::Config[:session_expiry] || 0
         base._session_secret_key    = Merb::Config[:session_secret_key]
+        base._default_cookie_domain = Merb::Config[:default_cookie_domain]
       end
       
       module ClassMethods
@@ -247,6 +250,7 @@ module Merb
       def set_session_cookie_value(value, options = {})
         defaults = {}
         defaults[:expires] = Time.now + _session_expiry if _session_expiry > 0
+        defaults[:domain] = _default_cookie_domain if _default_cookie_domain
         cookies.set_cookie(_session_id_key, value, defaults.merge(options))
       end
       alias :set_session_id_cookie :set_session_cookie_value
